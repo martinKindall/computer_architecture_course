@@ -47,8 +47,10 @@
 	jal rutinaX
 
 	add $a0, $v0, $zero
-	li $v0, 1		# print string
+	li $v0, 1		# print int
 	syscall
+
+	j exit
 
 
 rutinaX:	sll $t0, $s3, 1
@@ -63,3 +65,5 @@ rutinaX:	sll $t0, $s3, 1
 			add $v0, $v0, $t2
 
 			jr $ra
+
+exit: 
