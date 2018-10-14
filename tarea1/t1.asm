@@ -55,6 +55,7 @@
 
 	jal rutinaX
 
+	add $s0, $v0, $zero
 	add $a0, $v0, $zero
 	li $v0, 1		# print int
 	syscall
@@ -70,6 +71,7 @@
 
 	jal rutinaY
 
+	add $s1, $v0, $zero
 	add $a0, $v0, $zero
 	li $v0, 1		# print int
 	syscall
@@ -85,6 +87,7 @@
 
 	jal rutinaZ
 
+	add $s2, $v0, $zero
 	add $a0, $v0, $zero
 	li $v0, 1		# print int
 	syscall
