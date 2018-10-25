@@ -1,7 +1,11 @@
 .eqv SIZE 40
 
 .data 
+	fp1: .float -0.00000000000022312
+
 	buffer:	.space SIZE
+
+	floatA: .space 10
 
 	saltoLinea: .asciiz "\n" # string con terminacion 
 
@@ -21,6 +25,11 @@ jal printStr   			# llamamos a procedimiento para imprimir strings
 jal readStr  			# llamamos a procedimiento para leer strings del teclado
 
 jal strToFloat
+
+li $v0, 2
+la $t0, floatA
+lwc1 $f12, 0($t0)
+syscall
 
 j exit 					# salir del programa
 
@@ -42,17 +51,22 @@ readStr:
 
 strToFloat: 
 	la $t0, buffer
-	add $t1, $zero, $zero
+	add $t1, $zero, $zero	# i = 0
+	addi $t5, $zero, 9		# j = 9
 	add $t4, $zero, $zero  	# en $t4 guardaremos el exponente
+
+	addi $t6, $zero, 1  	# en $t6 guardamos 1, se setea en 0
+							# cuando ya tenemos el exponente
+
 
 	lbu $t2, 0($t0)   		# guardamos el signo del numero en $t2
 	addi $v0, $t2, -48  	# al restar 48 estamos transformando un digito ascii
 							# a un int, guardamos el signo int en $v0
 
 	L1: 
-		addi $t1, $t1, 1
-
-		beq $t1, 9, L2
+		beq $t1, $t5, L2		# i == j 
+		
+		addi $t1, $t1, 1	# i = i + 1
 
 		add $t2, $t0, $t1
 
@@ -65,9 +79,35 @@ strToFloat:
 		add $t4, $t4, $t3
 
 		j L1
-
 	L2: 
-		add $v1, $t4, $zero
+		beq $t6, $zero, L3
+
+		add $t6, $zero, $zero
+
+		add $v1, $t4, $zero	# guardamos el exponente en $v1
+
+		# mantisa
+
+		add $t4, $zero, $zero 	# en $t4 guardaremos la mantisa
+
+		add $t1, $zero, $zero	# i = 0
+		addi $t5, $zero, 23		# j = 23
+
+		addi $t0, $t0, 8
+
+		j L1
+	L3:
+		add $s0, $t4, $zero	# guardamos la mantisa en $s0
+
+		add $t7, $zero, $v0	# guardamos el signo en $t7
+		sll $t7, $t7, 8		# hacemos espacio para el exponente
+		add $t7, $t7, $v1	# juntamos el signo y el exponente
+		sll $t7, $t7, 23 	# hacemos espacio para la mantisa
+		add $t7, $t7, $s0	# agregmos la mantisa 
+
+		la $t0, floatA
+		sw $t7, 0($t0)
+
 		jr $ra
 
 
