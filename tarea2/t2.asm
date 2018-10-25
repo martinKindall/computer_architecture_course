@@ -43,10 +43,32 @@ readStr:
 strToFloat: 
 	la $t0, buffer
 	add $t1, $zero, $zero
+	add $t4, $zero, $zero  	# en $t4 guardaremos el exponente
 
-	lbu $t2, 0($t0)
-	lbu $t3, 1($t0)
+	lbu $t2, 0($t0)   		# guardamos el signo del numero en $t2
+	addi $v0, $t2, -48  	# al restar 48 estamos transformando un digito ascii
+							# a un int, guardamos el signo int en $v0
 
-	jr $ra
+	L1: 
+		addi $t1, $t1, 1
+
+		beq $t1, 9, L2
+
+		add $t2, $t0, $t1
+
+		lbu $t3, 0($t2)   	# guardamos el bit actual en $t3
+
+		addi $t3, $t3, -48  # de ascii a int
+
+		sll $t4, $t4, 1		# un shift left para hacer espacio para el siguiente
+
+		add $t4, $t4, $t3
+
+		j L1
+
+	L2: 
+		add $v1, $t4, $zero
+		jr $ra
+
 
 exit: 
