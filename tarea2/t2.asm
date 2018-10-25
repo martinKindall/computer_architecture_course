@@ -1,4 +1,8 @@
+.eqv SIZE 40
+
 .data 
+	buffer:	.space SIZE
+
 	saltoLinea: .asciiz "\n" # string con terminacion 
 
 	ingresarA: .asciiz "Ingrese A en Punto Flotante: " # string con terminacion 
@@ -14,6 +18,8 @@
 la $a1, ingresarA   	# guardar direccion de ingresarA en $a1
 jal printStr   			# llamamos a procedimiento para imprimir strings
 
+jal readStr  			# llamamos a procedimiento para leer strings del teclado
+
 j exit 					# salir del programa
 
 
@@ -22,6 +28,14 @@ printStr:
 	li $v0, 4			# guardar entero 4 en $v0
 	syscall				# llamada al sistema, 4 significa print str
 	jr $ra 				# retornar
+
+
+readStr:
+	la $a0, buffer		# guardamos la direccion del buffer en $a0
+	li $a1, SIZE		# definimos el tamaño del string a leer
+	li $v0, 8			# guardamos entero 8 en $v0
+	syscall				# llamada al sistema, 8 significa read string
+	jr $ra
 
 
 exit: 
