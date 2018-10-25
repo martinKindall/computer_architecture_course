@@ -20,6 +20,8 @@ jal printStr   			# llamamos a procedimiento para imprimir strings
 
 jal readStr  			# llamamos a procedimiento para leer strings del teclado
 
+jal strToFloat
+
 j exit 					# salir del programa
 
 
@@ -37,5 +39,14 @@ readStr:
 	syscall				# llamada al sistema, 8 significa read string
 	jr $ra
 
+
+strToFloat: 
+	la $t0, buffer
+	add $t1, $zero, $zero
+
+	lbu $t2, 0($t0)
+	lbu $t3, 1($t0)
+
+	jr $ra
 
 exit: 
