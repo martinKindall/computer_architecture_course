@@ -11,6 +11,7 @@
 	floatB: .space 4
 
 	saltoLinea: .asciiz "\n" # string con terminacion 
+	exponente: .asciiz " E" # string con terminacion 
 
 	ingresarA: .asciiz "Ingrese A en Punto Flotante: " # string con terminacion 
 	ingresarB: .asciiz "Ingrese B en Punto Flotante: " # string con terminacion 
@@ -50,9 +51,7 @@ li $v0, 2
 la $t0, floatB
 l.s $f12, 0($t0)
 l.s $f11, fp1
-
-#add $t1, $zero, $zero
-
+add $s0, $zero, $zero
 c.lt.s $f11, $f12
 bc1t normalizarHigh
 
@@ -60,12 +59,20 @@ ret1:
 
 syscall
 
+la $a1, exponente   	# guardar direccion de exponente en $a1
+jal printStr 
+
+add $a0, $s0, $zero
+jal printInt
+
 j exit 					# salir del programa
 
 
 normalizarHigh:
-	l.s $f11, fp3
+	addi $s0, $s0, 1	# exponente positivo
 	div.s $f12, $f12, $f11
+	c.lt.s $f11, $f12
+	bc1t normalizarHigh
 
 	j ret1
 
@@ -75,6 +82,12 @@ printStr:
 	li $v0, 4			# guardar entero 4 en $v0
 	syscall				# llamada al sistema, 4 significa print str
 	jr $ra 				# retornar
+
+
+printInt:
+	li $v0, 1			# guardamos entero 1 en $v0
+	syscall				# llamada al sistema, 1 es print int
+	jr $ra
 
 
 readStr:
