@@ -1,7 +1,9 @@
 .eqv SIZE 40
 
 .data 
-	fp1: .float -0.00000000000022312
+	fp1: .float 10.0
+	fp2: .float 1.0
+	fp3: .float 10000.0
 
 	buffer:	.space SIZE
 
@@ -47,9 +49,25 @@ jal printStr
 li $v0, 2
 la $t0, floatB
 l.s $f12, 0($t0)
+l.s $f11, fp1
+
+#add $t1, $zero, $zero
+
+c.lt.s $f11, $f12
+bc1t normalizarHigh
+
+ret1:
+
 syscall
 
 j exit 					# salir del programa
+
+
+normalizarHigh:
+	l.s $f11, fp3
+	div.s $f12, $f12, $f11
+
+	j ret1
 
 
 printStr: 
