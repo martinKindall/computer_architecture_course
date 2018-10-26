@@ -3,7 +3,7 @@
 .data 
 	fp1: .float 10.0
 	fp2: .float 1.0
-	fp3: .float 10000.0
+	fp3: .float 0.0
 
 	buffer:	.space SIZE
 
@@ -25,7 +25,12 @@
 	mostrarC: .asciiz "Numero C en decimal normalizado: " # string con terminacion 
 
 	resu1Normalizado: .asciiz "A · (B + C) en decimal normalizado: " # string con terminacion
-	resu1Flotante: .asciiz "A · (B + C) en Punto Flotante : " # string con terminacion
+	resu1Flotante: .asciiz "A · (B + C) en Punto Flotante: " # string con terminacion
+
+	signoMas: .asciiz "Signo (+ / -) : +" # string con terminacion
+	signoMen: .asciiz "Signo (+ / -) : -" # string con terminacion
+
+	exponenteReal: .asciiz "Exponente Real en Decimal: " # string con terminacion
 
 .text
 
@@ -107,6 +112,11 @@ jal printStr   			# llamamos a procedimiento para imprimir strings
 
 mov.s $f12, $f1
 jal printFloat
+
+
+# signo, mantisa, exponente
+mov.s $f12, $f1
+jal printSEM
 
 
 j exit 					# salir del programa
@@ -260,6 +270,57 @@ floatToStr:
 
 	L5:
 		sb $zero, 0($t1)
+		jr $ra
+
+
+# print Signo Exponente Mantisa
+printSEM:
+	addi $sp, $sp, -4		# aumentamos el stack en 4 bytes
+	sw $ra, 0($sp)			# guardamos el punto de retorno
+
+	swc1 $f12, floatAny
+	lw $t0, floatAny
+	la $t1, floatAny
+
+	l.s $f11, fp3			# guardamos 0.0 en $f11
+	c.lt.s $f12, $f11
+
+	bc1t mostrarMenos		# true
+
+	la $a1, signoMas	   	# guardar direccion de signoMen en $a1
+	jal printStr
+
+	la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
+	jal printStr
+
+	j 	Exponente
+
+	mostrarMenos: 
+		la $a1, signoMen   	# guardar direccion de signoMen en $a1
+		jal printStr
+
+		la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
+		jal printStr
+
+	Exponente:
+		addi $t2, $zero, 0x7f800000	# mascara de 8 bits en exponente
+		and $t2, $t0, $t2
+
+		srl $t2, $t2, 23		# alineamos a la derecha el exponente
+
+		addi $t2, $t2, -127
+
+		la $a1, exponenteReal  	# guardar direccion de exponenteReal en $a1
+		jal printStr
+
+		add $a0, $t2, $zero
+		jal printInt
+
+		la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
+		jal printStr
+
+		lw $ra, 0($sp)			# restauramos el punto de retorno
+		addi $sp, $sp, 4		# se reduce el stack en 4 bytes
 		jr $ra
 
 exit: 
