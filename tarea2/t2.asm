@@ -22,6 +22,8 @@
 	mostrarB: .asciiz "Numero B en decimal normalizado: " # string con terminacion 
 	mostrarC: .asciiz "Numero C en decimal normalizado: " # string con terminacion 
 
+	resu1Flotante: .asciiz "A · (B + C) en decimal normalizado: " # string con terminacion
+
 .text
 
 la $a1, ingresarA   	# guardar direccion de ingresarA en $a1
@@ -48,46 +50,48 @@ jal readStr  			# llamamos a procedimiento para leer strings del teclado
 la $a2, floatC			# guardamos la direccion de floatC en $a2
 jal strToFloat			# procedimiento que transforma de string a float
 
+la $a1, saltoLinea   	# guardar direccion de ingresarA en $a1
+jal printStr 
 
 # respuesta del programa 
 
 # normalizando a decimal
 
-la $a0, floatA
+la $a1, mostrarA	   	# guardar direccion de mostrarA en $a1
+jal printStr   			# llamamos a procedimiento para imprimir strings
+
+l.s $f12, floatA
 jal printFloat
 
-la $a1, exponente   	# guardar direccion de exponente en $a1
-jal printStr 
+la $a1, mostrarB	   	# guardar direccion de mostrarB en $a1
+jal printStr   			# llamamos a procedimiento para imprimir strings
 
-add $a0, $s0, $zero
-jal printInt
+l.s $f12, floatB
+jal printFloat
+
+la $a1, mostrarC	   	# guardar direccion de mostrarC en $a1
+jal printStr   			# llamamos a procedimiento para imprimir strings
+
+l.s $f12, floatC
+jal printFloat
 
 la $a1, saltoLinea   	# guardar direccion de ingresarA en $a1
 jal printStr 
 
-la $a0, floatB
+# A · (B + C)
+
+l.s $f1, floatA			# guardamos floatA en $f1
+l.s $f2, floatB			# guardamos floatB en $f2
+l.s $f3, floatC			# guardamos floatC en $f3
+
+add.s $f2, $f2, $f3 	# f2 = B + C
+mul.s $f1, $f2, $f1 	# f1 = A * (B+C)
+
+la $a1, resu1Flotante	# guardar direccion de resu1Flotante en $a1
+jal printStr   			# llamamos a procedimiento para imprimir strings
+
+mov.s $f12, $f1
 jal printFloat
-
-la $a1, exponente   	# guardar direccion de exponente en $a1
-jal printStr 
-
-add $a0, $s0, $zero
-jal printInt
-
-la $a1, saltoLinea   	# guardar direccion de ingresarA en $a1
-jal printStr 
-
-la $a0, floatC
-jal printFloat
-
-la $a1, exponente   	# guardar direccion de exponente en $a1
-jal printStr 
-
-add $a0, $s0, $zero
-jal printInt
-
-la $a1, saltoLinea   	# guardar direccion de ingresarA en $a1
-jal printStr 
 
 
 j exit 					# salir del programa
@@ -107,9 +111,8 @@ printInt:
 
 
 printFloat:
-	l.s $f12, 0($a0)
-	li $v0, 2
-
+	addi $sp, $sp, -4		# aumentamos el stack en 4 bytes
+	sw $ra, 0($sp)			# guardamos el punto de retorno
 	l.s $f11, fp1			# guardamos 10.0 en $f11
 	add $s0, $zero, $zero	# inicializamos exponente en 0
 	abs.s $f10, $f12		# $f10 = |$f12| valor absoluto
@@ -120,7 +123,20 @@ printFloat:
 	bc1t normalizarLow		# true
 
 	ret1:
+		li $v0, 2
 		syscall
+
+		la $a1, exponente   	# guardar direccion de exponente en $a1
+		jal printStr 
+
+		add $a0, $s0, $zero
+		jal printInt
+
+		la $a1, saltoLinea   	# guardar direccion de ingresarA en $a1
+		jal printStr 
+
+		lw $ra, 0($sp)			# restauramos el punto de retorno
+		addi $sp, $sp, 4		# se reduce el stack en 4 bytes
 		jr $ra
 
 	normalizarHigh:
