@@ -11,6 +11,8 @@
 	floatB: .space 4
 	floatC: .space 4
 
+	floatAny:.space 4
+
 	saltoLinea: .asciiz "\n" # string con terminacion 
 	exponente: .asciiz " E" # string con terminacion 
 
@@ -93,6 +95,11 @@ jal printStr   			# llamamos a procedimiento para imprimir strings
 mov.s $f12, $f1
 jal printFloat
 
+mov.s $f12, $f1
+jal floatToStr
+
+la $a1, buffer			# guardar direccion de buffer en $a1
+jal printStr 
 
 j exit 					# salir del programa
 
@@ -224,5 +231,27 @@ strToFloat:
 
 		jr $ra
 
+
+floatToStr:
+	add $t0, $zero, $zero
+	la $t1, buffer
+	addiu $t2, $zero, 0x80000000
+	swc1 $f12, floatAny
+	lw $t4, floatAny
+
+	L4:
+		beq $t0, 32, L5
+		and $t3, $t2, $t4
+		sne $t5, $t3, 0		# t5 = 1 si t3 != 0, sino 0
+		addi $t5, $t5, 48	# convertirmos de bit a ascii
+		sb $t5, 0($t1)
+		addi $t0, $t0, 1
+		addi $t1, $t1, 1
+		srl $t2, $t2, 1
+		j L4
+
+	L5:
+		sb $zero, 0($t1)
+		jr $ra
 
 exit: 
