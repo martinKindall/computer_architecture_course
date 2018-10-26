@@ -82,8 +82,12 @@ printFloat:
 
 	l.s $f11, fp1			# guardamos 10.0 en $f11
 	add $s0, $zero, $zero	# inicializamos exponente en 0
-	c.lt.s $f11, $f12		# 10.0 < $f12 ? 
+	abs.s $f10, $f12		# $f10 = |$f12| valor absoluto
+	c.lt.s $f11, $f10		# 10.0 < $f10 ? 
 	bc1t normalizarHigh		# true
+	l.s $f9, fp2			# guardamos 1.0 en $f11
+	c.lt.s $f10, $f9		# 1.0 > $f10 ? 
+	bc1t normalizarLow		# true
 
 	ret1:
 		syscall
@@ -92,8 +96,17 @@ printFloat:
 	normalizarHigh:
 		addi $s0, $s0, 1	# exponente positivo
 		div.s $f12, $f12, $f11
-		c.lt.s $f11, $f12
+		abs.s $f10, $f12		# $f10 = |$f12| valor absoluto
+		c.lt.s $f11, $f10
 		bc1t normalizarHigh
+		j ret1
+
+	normalizarLow:
+		addi $s0, $s0, -1	# exponente positivo
+		mul.s $f12, $f12, $f11
+		abs.s $f10, $f12		# $f10 = |$f12| valor absoluto
+		c.lt.s $f10, $f9
+		bc1t normalizarLow
 		j ret1
 
 
