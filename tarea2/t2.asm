@@ -5,7 +5,8 @@
 
 	buffer:	.space SIZE
 
-	floatA: .space 10
+	floatA: .space 4
+	floatB: .space 4
 
 	saltoLinea: .asciiz "\n" # string con terminacion 
 
@@ -24,11 +25,28 @@ jal printStr   			# llamamos a procedimiento para imprimir strings
 
 jal readStr  			# llamamos a procedimiento para leer strings del teclado
 
+la $a2, floatA
+jal strToFloat
+
+la $a1, ingresarB   	# guardar direccion de ingresarA en $a1
+jal printStr   			# llamamos a procedimiento para imprimir strings
+
+jal readStr  			# llamamos a procedimiento para leer strings del teclado
+
+la $a2, floatB
 jal strToFloat
 
 li $v0, 2
 la $t0, floatA
-lwc1 $f12, 0($t0)
+l.s $f12, 0($t0)
+syscall
+
+la $a1, saltoLinea   	# guardar direccion de ingresarA en $a1
+jal printStr  
+
+li $v0, 2
+la $t0, floatB
+l.s $f12, 0($t0)
 syscall
 
 j exit 					# salir del programa
@@ -52,7 +70,7 @@ readStr:
 strToFloat: 
 	la $t0, buffer
 	add $t1, $zero, $zero	# i = 0
-	addi $t5, $zero, 9		# j = 9
+	addi $t5, $zero, 8		# j = 9
 	add $t4, $zero, $zero  	# en $t4 guardaremos el exponente
 
 	addi $t6, $zero, 1  	# en $t6 guardamos 1, se setea en 0
@@ -105,8 +123,7 @@ strToFloat:
 		sll $t7, $t7, 23 	# hacemos espacio para la mantisa
 		add $t7, $t7, $s0	# agregmos la mantisa 
 
-		la $t0, floatA
-		sw $t7, 0($t0)
+		sw $t7, 0($a2)
 
 		jr $ra
 
