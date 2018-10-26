@@ -24,7 +24,8 @@
 	mostrarB: .asciiz "Numero B en decimal normalizado: " # string con terminacion 
 	mostrarC: .asciiz "Numero C en decimal normalizado: " # string con terminacion 
 
-	resu1Flotante: .asciiz "A · (B + C) en decimal normalizado: " # string con terminacion
+	resu1Normalizado: .asciiz "A · (B + C) en decimal normalizado: " # string con terminacion
+	resu1Flotante: .asciiz "A · (B + C) en Punto Flotante : " # string con terminacion
 
 .text
 
@@ -93,13 +94,20 @@ la $a1, resu1Flotante	# guardar direccion de resu1Flotante en $a1
 jal printStr   			# llamamos a procedimiento para imprimir strings
 
 mov.s $f12, $f1
-jal printFloat
-
-mov.s $f12, $f1
 jal floatToStr
 
 la $a1, buffer			# guardar direccion de buffer en $a1
 jal printStr 
+
+la $a1, saltoLinea   	# guardar direccion de ingresarA en $a1
+jal printStr 
+
+la $a1, resu1Normalizado	# guardar direccion de resu1Normalizado en $a1
+jal printStr   			# llamamos a procedimiento para imprimir strings
+
+mov.s $f12, $f1
+jal printFloat
+
 
 j exit 					# salir del programa
 
@@ -235,7 +243,7 @@ strToFloat:
 floatToStr:
 	add $t0, $zero, $zero
 	la $t1, buffer
-	addiu $t2, $zero, 0x80000000
+	addiu $t2, $zero, 0x80000000	# mascara de 1 bit en pos. 31
 	swc1 $f12, floatAny
 	lw $t4, floatAny
 
