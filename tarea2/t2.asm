@@ -31,6 +31,7 @@
 	signoMen: .asciiz "Signo (+ / -) : -" # string con terminacion
 
 	exponenteReal: .asciiz "Exponente Real en Decimal: " # string con terminacion
+	mantisaDec: .asciiz "Mantisa en Decimal: " # string con terminacion
 
 .text
 
@@ -315,6 +316,22 @@ printSEM:
 
 		add $a0, $t2, $zero
 		jal printInt
+
+		la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
+		jal printStr
+
+		la $a1, mantisaDec  	# guardar direccion de mantisaDec en $a1
+		jal printStr
+
+		addiu $t2, $zero, 0x807fffff	# mascara de 8 bits para borrar exponente
+		and $t2, $t0, $t2
+		addi $t4, $zero, 127
+		sll $t4, $t4, 23		# alineamos a la izquierda el exponente 127
+		or $t2, $t2, $t4		# obtenemos la mantisa
+		sw $t2, floatAny
+		l.s $f12, floatAny
+		li $v0, 2
+		syscall
 
 		la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
 		jal printStr
