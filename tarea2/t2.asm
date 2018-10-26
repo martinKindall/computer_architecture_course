@@ -9,6 +9,7 @@
 
 	floatA: .space 4
 	floatB: .space 4
+	floatC: .space 4
 
 	saltoLinea: .asciiz "\n" # string con terminacion 
 	exponente: .asciiz " E" # string con terminacion 
@@ -28,16 +29,29 @@ jal printStr   			# llamamos a procedimiento para imprimir strings
 
 jal readStr  			# llamamos a procedimiento para leer strings del teclado
 
-la $a2, floatA
-jal strToFloat
+la $a2, floatA			# guardamos la direccion de floatA en $a2
+jal strToFloat			# procedimiento que transforma de string a float
 
 la $a1, ingresarB   	# guardar direccion de ingresarB en $a1
 jal printStr   			# llamamos a procedimiento para imprimir strings
 
 jal readStr  			# llamamos a procedimiento para leer strings del teclado
 
-la $a2, floatB
-jal strToFloat
+la $a2, floatB			# guardamos la direccion de floatB en $a2
+jal strToFloat			# procedimiento que transforma de string a float
+
+la $a1, ingresarC   	# guardar direccion de ingresarC en $a1
+jal printStr   			# llamamos a procedimiento para imprimir strings
+
+jal readStr  			# llamamos a procedimiento para leer strings del teclado
+
+la $a2, floatC			# guardamos la direccion de floatC en $a2
+jal strToFloat			# procedimiento que transforma de string a float
+
+
+# respuesta del programa 
+
+# normalizando a decimal
 
 la $a0, floatA
 jal printFloat
@@ -59,6 +73,22 @@ jal printStr
 
 add $a0, $s0, $zero
 jal printInt
+
+la $a1, saltoLinea   	# guardar direccion de ingresarA en $a1
+jal printStr 
+
+la $a0, floatC
+jal printFloat
+
+la $a1, exponente   	# guardar direccion de exponente en $a1
+jal printStr 
+
+add $a0, $s0, $zero
+jal printInt
+
+la $a1, saltoLinea   	# guardar direccion de ingresarA en $a1
+jal printStr 
+
 
 j exit 					# salir del programa
 
