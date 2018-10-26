@@ -31,7 +31,7 @@ jal readStr  			# llamamos a procedimiento para leer strings del teclado
 la $a2, floatA
 jal strToFloat
 
-la $a1, ingresarB   	# guardar direccion de ingresarA en $a1
+la $a1, ingresarB   	# guardar direccion de ingresarB en $a1
 jal printStr   			# llamamos a procedimiento para imprimir strings
 
 jal readStr  			# llamamos a procedimiento para leer strings del teclado
@@ -39,25 +39,20 @@ jal readStr  			# llamamos a procedimiento para leer strings del teclado
 la $a2, floatB
 jal strToFloat
 
-li $v0, 2
-la $t0, floatA
-l.s $f12, 0($t0)
-syscall
+la $a0, floatA
+jal printFloat
+
+la $a1, exponente   	# guardar direccion de exponente en $a1
+jal printStr 
+
+add $a0, $s0, $zero
+jal printInt
 
 la $a1, saltoLinea   	# guardar direccion de ingresarA en $a1
-jal printStr  
+jal printStr 
 
-li $v0, 2
-la $t0, floatB
-l.s $f12, 0($t0)
-l.s $f11, fp1
-add $s0, $zero, $zero
-c.lt.s $f11, $f12
-bc1t normalizarHigh
-
-ret1:
-
-syscall
+la $a0, floatB
+jal printFloat
 
 la $a1, exponente   	# guardar direccion de exponente en $a1
 jal printStr 
@@ -66,15 +61,6 @@ add $a0, $s0, $zero
 jal printInt
 
 j exit 					# salir del programa
-
-
-normalizarHigh:
-	addi $s0, $s0, 1	# exponente positivo
-	div.s $f12, $f12, $f11
-	c.lt.s $f11, $f12
-	bc1t normalizarHigh
-
-	j ret1
 
 
 printStr: 
@@ -88,6 +74,27 @@ printInt:
 	li $v0, 1			# guardamos entero 1 en $v0
 	syscall				# llamada al sistema, 1 es print int
 	jr $ra
+
+
+printFloat:
+	l.s $f12, 0($a0)
+	li $v0, 2
+
+	l.s $f11, fp1			# guardamos 10.0 en $f11
+	add $s0, $zero, $zero	# inicializamos exponente en 0
+	c.lt.s $f11, $f12		# 10.0 < $f12 ? 
+	bc1t normalizarHigh		# true
+
+	ret1:
+		syscall
+		jr $ra
+
+	normalizarHigh:
+		addi $s0, $s0, 1	# exponente positivo
+		div.s $f12, $f12, $f11
+		c.lt.s $f11, $f12
+		bc1t normalizarHigh
+		j ret1
 
 
 readStr:
