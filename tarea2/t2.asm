@@ -27,6 +27,9 @@
 	resu1Normalizado: .asciiz "A · (B + C) en decimal normalizado: " # string con terminacion
 	resu1Flotante: .asciiz "A · (B + C) en Punto Flotante: " # string con terminacion
 
+	resu2Normalizado: .asciiz "(A · B) + (A · C) decimal normalizado: " # string con terminacion
+	resu2Flotante: .asciiz "(A · B) + (A · C) en Punto Flotante: " # string con terminacion
+
 	signoMas: .asciiz "Signo (+ / -) : +" # string con terminacion
 	signoMen: .asciiz "Signo (+ / -) : -" # string con terminacion
 
@@ -105,10 +108,47 @@ jal floatToStr
 la $a1, buffer			# guardar direccion de buffer en $a1
 jal printStr 
 
-la $a1, saltoLinea   	# guardar direccion de ingresarA en $a1
+la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
 jal printStr 
 
 la $a1, resu1Normalizado	# guardar direccion de resu1Normalizado en $a1
+jal printStr   			# llamamos a procedimiento para imprimir strings
+
+mov.s $f12, $f1
+jal printFloat
+
+# signo, mantisa, exponente
+mov.s $f12, $f1
+jal printSEM
+
+la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
+jal printStr 
+
+
+# (A·B) + (A·C)
+
+l.s $f1, floatA			# guardamos floatA en $f1
+l.s $f2, floatB			# guardamos floatB en $f2
+l.s $f3, floatC			# guardamos floatC en $f3
+
+mul.s $f2, $f1, $f2 	# f2 = A * B
+mul.s $f3, $f1, $f3 	# f3 = A * C
+
+add.s $f1, $f2, $f3 	# f1 = (AB) + (AC)
+
+la $a1, resu2Flotante	# guardar direccion de resu2Flotante en $a1
+jal printStr   			# llamamos a procedimiento para imprimir strings
+
+mov.s $f12, $f1
+jal floatToStr
+
+la $a1, buffer			# guardar direccion de buffer en $a1
+jal printStr 
+
+la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
+jal printStr 
+
+la $a1, resu2Normalizado	# guardar direccion de resu2Normalizado en $a1
 jal printStr   			# llamamos a procedimiento para imprimir strings
 
 mov.s $f12, $f1
@@ -118,7 +158,6 @@ jal printFloat
 # signo, mantisa, exponente
 mov.s $f12, $f1
 jal printSEM
-
 
 j exit 					# salir del programa
 
