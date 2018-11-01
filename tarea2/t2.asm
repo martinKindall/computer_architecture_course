@@ -112,7 +112,7 @@ mul.d $f0, $f2, $f0 	# f0 = A * (B+C)
 
 # aca hay que rescatar el guard bit, round bit y el sticky bit
 
-jal printGRS
+mov.d $f6, $f0
 
 cvt.s.d $f0, $f0
 
@@ -141,22 +141,36 @@ jal printSEM
 la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
 jal printStr 
 
+jal printGRS
+
+la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
+jal printStr 
 
 # (A·B) + (A·C)
 
-l.s $f1, floatA			# guardamos floatA en $f1
+l.s $f0, floatA			# guardamos floatA en $f0
 l.s $f2, floatB			# guardamos floatB en $f2
-l.s $f3, floatC			# guardamos floatC en $f3
+l.s $f4, floatC			# guardamos floatC en $f4
 
-mul.s $f2, $f1, $f2 	# f2 = A * B
-mul.s $f3, $f1, $f3 	# f3 = A * C
+# convertir a doble presicion
 
-add.s $f1, $f2, $f3 	# f1 = (AB) + (AC)
+cvt.d.s $f0, $f0
+cvt.d.s $f2, $f2
+cvt.d.s $f4, $f4
+
+mul.d $f2, $f0, $f2 	# f2 = A * B
+mul.d $f4, $f0, $f4 	# f4 = A * C
+
+add.d $f0, $f2, $f4 	# f0 = (AB) + (AC)
+
+mov.d $f6, $f0
+
+cvt.s.d $f0, $f0
 
 la $a1, resu2Flotante	# guardar direccion de resu2Flotante en $a1
 jal printStr   			# llamamos a procedimiento para imprimir strings
 
-mov.s $f12, $f1
+mov.s $f12, $f0
 jal floatToStr
 
 la $a1, buffer			# guardar direccion de buffer en $a1
@@ -168,13 +182,17 @@ jal printStr
 la $a1, resu2Normalizado	# guardar direccion de resu2Normalizado en $a1
 jal printStr   			# llamamos a procedimiento para imprimir strings
 
-mov.s $f12, $f1
+mov.s $f12, $f0
 jal printFloat
 
-
 # signo, mantisa, exponente
-mov.s $f12, $f1
+mov.s $f12, $f0
 jal printSEM
+
+la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
+jal printStr 
+
+jal printGRS
 
 j exit 					# salir del programa
 
@@ -401,7 +419,7 @@ printGRS:
 	addi $sp, $sp, -4		# aumentamos el stack en 4 bytes
 	sw $ra, 0($sp)			# guardamos el punto de retorno
 
-	mfc1 $t1, $f0
+	mfc1 $t1, $f6
 	addiu $t0, $zero, 0x10000000	# mascara de 1 bit en pos. 28
 
 	and $t2, $t1, $t0
