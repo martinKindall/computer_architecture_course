@@ -92,17 +92,43 @@ jal printStr
 
 # A · (B + C)
 
-l.s $f1, floatA			# guardamos floatA en $f1
+l.s $f0, floatA			# guardamos floatA en $f0
 l.s $f2, floatB			# guardamos floatB en $f2
-l.s $f3, floatC			# guardamos floatC en $f3
+l.s $f4, floatC			# guardamos floatC en $f4
 
-add.s $f2, $f2, $f3 	# f2 = B + C
-mul.s $f1, $f2, $f1 	# f1 = A * (B+C)
+# convertir a doble presicion
+
+cvt.d.s $f0, $f0
+cvt.d.s $f2, $f2
+cvt.d.s $f4, $f4
+
+add.d $f2, $f2, $f4 	# f2 = B + C
+mul.d $f0, $f2, $f0 	# f0 = A * (B+C)
+
+# aca hay que rescatar el guard bit, round bit y el sticky bit
+
+mfc1 $t1, $f0
+addiu $t0, $zero, 0x10000000	# mascara de 1 bit en pos. 28
+
+and $t2, $t1, $t0
+slt $s0, $zero, $t2	# si $t2 es > 0 entonces guard bit = 1
+srl $t0, $t0, 1
+
+and $t2, $t1, $t0
+slt $s1, $zero, $t2	# si $t2 es > 0 entonces round bit = 1
+
+addiu $t0, $zero, 0x7ffffff	# mascara de 1's desde posicion 26, 
+							# basta un uno para que sticky sea 1
+
+and $t2, $t1, $t0
+slt $s2, $zero, $t2	# si $t2 es > 0 entonces sticky = 1
+
+cvt.s.d $f0, $f0
 
 la $a1, resu1Flotante	# guardar direccion de resu1Flotante en $a1
 jal printStr   			# llamamos a procedimiento para imprimir strings
 
-mov.s $f12, $f1
+mov.s $f12, $f0
 jal floatToStr
 
 la $a1, buffer			# guardar direccion de buffer en $a1
