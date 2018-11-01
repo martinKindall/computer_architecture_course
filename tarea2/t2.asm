@@ -36,6 +36,11 @@
 	exponenteReal: .asciiz "Exponente Real en Decimal: " # string con terminacion
 	mantisaDec: .asciiz "Mantisa en Decimal: " # string con terminacion
 
+	guardBit: .asciiz "Guard bit: " # string con terminacion
+	roundBit: .asciiz "Round bit: " # string con terminacion
+	stickyBit: .asciiz "Sticky bit: " # string con terminacion
+
+
 .text
 
 la $a1, ingresarA   	# guardar direccion de ingresarA en $a1
@@ -107,21 +112,7 @@ mul.d $f0, $f2, $f0 	# f0 = A * (B+C)
 
 # aca hay que rescatar el guard bit, round bit y el sticky bit
 
-mfc1 $t1, $f0
-addiu $t0, $zero, 0x10000000	# mascara de 1 bit en pos. 28
-
-and $t2, $t1, $t0
-slt $s0, $zero, $t2	# si $t2 es > 0 entonces guard bit = 1
-srl $t0, $t0, 1
-
-and $t2, $t1, $t0
-slt $s1, $zero, $t2	# si $t2 es > 0 entonces round bit = 1
-
-addiu $t0, $zero, 0x7ffffff	# mascara de 1's desde posicion 26, 
-							# basta un uno para que sticky sea 1
-
-and $t2, $t1, $t0
-slt $s2, $zero, $t2	# si $t2 es > 0 entonces sticky = 1
+jal printGRS
 
 cvt.s.d $f0, $f0
 
@@ -140,11 +131,11 @@ jal printStr
 la $a1, resu1Normalizado	# guardar direccion de resu1Normalizado en $a1
 jal printStr   			# llamamos a procedimiento para imprimir strings
 
-mov.s $f12, $f1
+mov.s $f12, $f0
 jal printFloat
 
 # signo, mantisa, exponente
-mov.s $f12, $f1
+mov.s $f12, $f0
 jal printSEM
 
 la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
@@ -404,5 +395,58 @@ printSEM:
 		lw $ra, 0($sp)			# restauramos el punto de retorno
 		addi $sp, $sp, 4		# se reduce el stack en 4 bytes
 		jr $ra
+
+
+printGRS:
+	addi $sp, $sp, -4		# aumentamos el stack en 4 bytes
+	sw $ra, 0($sp)			# guardamos el punto de retorno
+
+	mfc1 $t1, $f0
+	addiu $t0, $zero, 0x10000000	# mascara de 1 bit en pos. 28
+
+	and $t2, $t1, $t0
+	slt $s0, $zero, $t2	# si $t2 es > 0 entonces guard bit = 1
+	srl $t0, $t0, 1
+
+	and $t2, $t1, $t0
+	slt $s1, $zero, $t2	# si $t2 es > 0 entonces round bit = 1
+
+	addiu $t0, $zero, 0x7ffffff	# mascara de 1's desde posicion 26, 
+								# basta un uno para que sticky sea 1
+
+	and $t2, $t1, $t0
+	slt $s2, $zero, $t2	# si $t2 es > 0 entonces sticky = 1
+
+	la $a1, guardBit  	# guardar direccion de guardBit en $a1
+	jal printStr
+
+	add $a0, $s0, $zero
+	jal printInt
+
+	la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
+	jal printStr
+
+	la $a1, roundBit  	# guardar direccion de roundBit en $a1
+	jal printStr
+
+	add $a0, $s1, $zero
+	jal printInt
+
+	la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
+	jal printStr
+
+	la $a1, stickyBit  	# guardar direccion de stickyBit en $a1
+	jal printStr
+
+	add $a0, $s2, $zero
+	jal printInt
+
+	la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
+	jal printStr
+
+	lw $ra, 0($sp)			# restauramos el punto de retorno
+	addi $sp, $sp, 4		# se reduce el stack en 4 bytes
+	jr $ra
+
 
 exit: 
