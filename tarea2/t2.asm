@@ -40,6 +40,12 @@
 	roundBit: .asciiz "Round bit: " # string con terminacion
 	stickyBit: .asciiz "Sticky bit: " # string con terminacion
 
+	overFlow: .asciiz "Overflow (S/N): " # string con terminacion
+	underFlow: .asciiz "Underflow (S/N): " # string con terminacion
+
+	afirmar: .asciiz "S" # string con terminacion
+	negar: .asciiz "N" # string con terminacion
+
 
 .text
 
@@ -114,7 +120,7 @@ mul.d $f0, $f2, $f0 	# f0 = A * (B+C)
 
 mov.d $f6, $f0
 
-cvt.s.d $f0, $f0
+cvt.s.d $f0, $f6
 
 la $a1, resu1Flotante	# guardar direccion de resu1Flotante en $a1
 jal printStr   			# llamamos a procedimiento para imprimir strings
@@ -141,7 +147,7 @@ jal printSEM
 la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
 jal printStr 
 
-jal printGRS
+jal printGRSOverUnder
 
 la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
 jal printStr 
@@ -165,7 +171,7 @@ add.d $f0, $f2, $f4 	# f0 = (AB) + (AC)
 
 mov.d $f6, $f0
 
-cvt.s.d $f0, $f0
+cvt.s.d $f0, $f6
 
 la $a1, resu2Flotante	# guardar direccion de resu2Flotante en $a1
 jal printStr   			# llamamos a procedimiento para imprimir strings
@@ -192,7 +198,7 @@ jal printSEM
 la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
 jal printStr 
 
-jal printGRS
+jal printGRSOverUnder
 
 j exit 					# salir del programa
 
@@ -213,6 +219,13 @@ printInt:
 printFloat:
 	addi $sp, $sp, -4		# aumentamos el stack en 4 bytes
 	sw $ra, 0($sp)			# guardamos el punto de retorno
+
+	mfc1 $t0, $f12
+	addi $t3, $zero, 0xff800000	# -infinito
+	addi $t4, $zero, 0x7f800000	# +infinito
+	beq $t0, $t3, ret1
+	beq $t0, $t4 ret1
+
 	l.s $f11, fp1			# guardamos 10.0 en $f11
 	add $s0, $zero, $zero	# inicializamos exponente en 0
 	abs.s $f10, $f12		# $f10 = |$f12| valor absoluto
@@ -232,7 +245,7 @@ printFloat:
 		add $a0, $s0, $zero
 		jal printInt
 
-		la $a1, saltoLinea   	# guardar direccion de ingresarA en $a1
+		la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
 		jal printStr 
 
 		lw $ra, 0($sp)			# restauramos el punto de retorno
@@ -415,7 +428,7 @@ printSEM:
 		jr $ra
 
 
-printGRS:
+printGRSOverUnder:
 	addi $sp, $sp, -4		# aumentamos el stack en 4 bytes
 	sw $ra, 0($sp)			# guardamos el punto de retorno
 
@@ -462,9 +475,55 @@ printGRS:
 	la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
 	jal printStr
 
-	lw $ra, 0($sp)			# restauramos el punto de retorno
-	addi $sp, $sp, 4		# se reduce el stack en 4 bytes
-	jr $ra
+	mfc1 $t1, $f7			
+	addiu $t0, $zero, 0x7ff00000	# mascara de 1's en exponente (11 bits)
+
+	and $t1, $t1, $t0
+	srl $t1, $t1, 20		# se desplaza a la derecha el numero en el exponente
+	addi $t1, $t1, -1023	# se obtiene exponente real
+
+	slti $s0, $t1, -126		# si $t1 es < 126 entonces underFlow
+
+	la $a1, underFlow  	# guardar direccion de underFlow en $a1
+	jal printStr
+
+	beq $zero, $s0, printN
+
+	la $a1, afirmar
+
+	j continue
+
+	printN: 
+		la $a1, negar
+
+	continue:
+
+		jal printStr
+		la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
+		jal printStr
+
+		slti $s0, $t1, 128		# si $t1 es > 128 entonces overFlow
+
+		la $a1, overFlow  	# guardar direccion de overFlow en $a1
+		jal printStr
+
+		bne $zero, $s0, printN2
+
+		la $a1, afirmar
+
+		j continue2
+
+		printN2:
+			la $a1, negar
+
+		continue2:
+			jal printStr
+			la $a1, saltoLinea   	# guardar direccion de saltoLinea en $a1
+			jal printStr
+
+			lw $ra, 0($sp)			# restauramos el punto de retorno
+			addi $sp, $sp, 4		# se reduce el stack en 4 bytes
+			jr $ra
 
 
 exit: 
