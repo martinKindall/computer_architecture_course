@@ -81,4 +81,21 @@
 24 _ _ l 20
 ; Now there is n+1 left on tape. We remove one 1 and we're done
 25 _ _ r 25
-25 1 _ r halt
+25 1 _ r 26
+
+26 1 X l 27
+26 _ * l 28
+26 X * r 26
+
+27 1 0 l 27
+27 0 1 r 29
+27 _ 1 r 29
+27 X * l 27
+
+28 X _ l 28
+28 1 * * halt
+28 0 * * halt
+
+29 1 * r 29
+29 0 * r 29
+29 X * r 26
